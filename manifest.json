@@ -1,14 +1,14 @@
 {
-  "domain": "renogy_rover",
-  "name": "Renogy Rover",
-  "documentation": "https://github.com/emerica/renogy-rover",
+  "domain": "renogy_bt1",
+  "name": "Renogy BT-1",
+  "documentation": "https://github.com/example/renogy_bt1",
+  "requirements": [
+    "renogy-bt1==0.1.0",
+    "homeassistant==2022.1.5"
+  ],
   "dependencies": [],
-  "codeowners": [],
-  "requirements": ["renogy-bt1"],
-  "config_flow": true,
-  "zeroconf": ["_renogy-rover._tcp.local."],
-  "homeassistant": ">=2022.2.0",
+  "codeowners": ["@ChatGPT"],
   "version": "0.1.0",
-  "issue_tracker": "https://github.com/emerica/renogy-rover/issues",
-  "frontend": true
+  "config_flow": true,
+  "mqtt": true
 }

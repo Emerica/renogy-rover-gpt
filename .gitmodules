@@ -1,0 +1,3 @@
+[submodule "renogy-bt1"]
+	path = renogy-bt1
+	url = https://github.com/emerica/renogy-bt1.git

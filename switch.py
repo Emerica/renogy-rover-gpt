@@ -1,86 +1,108 @@
-"""Support for the Renogy Rover load switch."""
+"""Support for Renogy Rover Charge Controllers."""
+from __future__ import annotations
 
-import logging
+from typing import Any, Optional
 
 from homeassistant.components.switch import SwitchEntity
-from homeassistant.const import ATTR_ENTITY_ID
-from homeassistant.core import callback
-from homeassistant.helpers.dispatcher import async_dispatcher_connect
-from homeassistant.helpers.event import async_call_later
-
-from .const import (
-    DOMAIN,
-    LOGGER,
-    SIGNAL_UPDATE_ROVER,
-    SERVICE_SET_LOAD,
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import (
+    CONF_ID,
+    CONF_NAME,
+    CONF_SCAN_INTERVAL,
+    DEVICE_CLASS_OUTLET,
+    DEVICE_CLASS_SWITCH,
+)
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.update_coordinator import (
+    CoordinatorEntity,
+    DataUpdateCoordinator,
 )
 
-_LOGGER = logging.getLogger(__name__)
+from .const import (
+    CONF_SENSOR_TYPE,
+    DEFAULT_NAME,
+    DOMAIN,
+    ICON,
+    SENSOR_TYPES,
+    SWITCH_TYPES,
+)
+from .coordinator import RenogyDataUpdateCoordinator
+from .helpers import (
+    RenogyDeviceEntity,
+    RenogyEntityDescription,
+    async_get_renogy_device_id,
+    async_get_renogy_device_info,
+)
 
 
-async def async_setup_entry(hass, entry, async_add_entities):
-    """Set up the Renogy Rover switch."""
-    coordinator = hass.data[DOMAIN][entry.entry_id]
-    async_add_entities([RenogyRoverSwitch(coordinator)], True)
+async def async_setup_entry(
+    hass: HomeAssistant,
+    entry: ConfigEntry,
+    async_add_entities: AddEntitiesCallback,
+) -> None:
+    """Set up Renogy Charge Controller based on a config entry."""
+    coordinator: RenogyDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
+    entities = []
+    for switch in SWITCH_TYPES:
+        entity_desc = RenogyEntityDescription(
+            key=switch.key,
+            device_class=DEVICE_CLASS_SWITCH,
+            device_info=await async_get_renogy_device_info(entry),
+            entity_registry_enabled_default=True,
+            name=switch.name,
+            icon=switch.icon,
+        )
+        entities.append(RenogySwitch(coordinator, entity_desc))
+    async_add_entities(entities, True)
 
 
-class RenogyRoverSwitch(SwitchEntity):
-    """Representation of a Renogy Rover load switch."""
+class RenogySwitch(RenogyDeviceEntity, SwitchEntity):
+    """Representation of a switch entity for the Renogy Rover Charge Controller."""
 
-    def __init__(self, coordinator):
-        """Initialize the switch."""
-        self._name = f"{coordinator.rover.alias} Load Switch"
-        self._coordinator = coordinator
-        self._is_on = None
+    def __init__(
+        self,
+        coordinator: RenogyDataUpdateCoordinator,
+        description: RenogyEntityDescription,
+    ) -> None:
+        """Initialize a Renogy Switch."""
+        super().__init__(coordinator=coordinator, description=description)
 
-    async def async_added_to_hass(self):
-        """Register callbacks when entity is added."""
-        self.async_on_remove(
-            async_dispatcher_connect(
-                self.hass, SIGNAL_UPDATE_ROVER, self._update_callback
-            )
+    @property
+    def is_on(self) -> bool:
+        """Return the state of the entity."""
+        return self.coordinator.data[self.entity_description.key]
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        """Turn on the entity."""
+        await self.async_turn(True)
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        """Turn off the entity."""
+        await self.async_turn(False)
+
+    async def async_turn(self, value: bool) -> None:
+        """Update the value of the entity."""
+        command = SWITCH_TYPES[self.entity_description.key].command(value)
+        await self.hass.async_add_executor_job(
+            self.coordinator.device.set_parameter,
+            self.coordinator.modbus,
+            command,
+            self.coordinator.data,
         )
 
-    async def async_update(self):
-        """Fetch the latest data and update the switch."""
-        await self._coordinator.async_request_refresh()
+    async def async_added_to_hass(self) -> None:
+        """Register callbacks."""
+        await super().async_added_to_hass()
+        self.async_on_remove(
+            self.hass.helpers.event.async_track_time_interval(
+                self.async_update,
+                self.coordinator.update_interval,
+            ),
+        )
 
-    @callback
-    def _update_callback(self):
-        """Update the switch state."""
-        self._is_on = self._coordinator.rover.load_status == "on"
-        self.async_write_ha_state()
 
-    @property
-    def name(self):
-        """Return the name of the switch."""
-        return self._name
-
-    @property
-    def is_on(self):
-        """Return the current state of the switch."""
-        return self._is_on
-
-    async def async_turn_on(self, **kwargs):
-        """Turn the switch on."""
-        data = {ATTR_ENTITY_ID: self.entity_id, "load": 1}
-        await self.hass.services.async_call(DOMAIN, SERVICE_SET_LOAD, data)
-        self._is_on = True
-        self.async_write_ha_state()
-
-    async def async_turn_off(self, **kwargs):
-        """Turn the switch off."""
-        data = {ATTR_ENTITY_ID: self.entity_id, "load": 0}
-        await self.hass.services.async_call(DOMAIN, SERVICE_SET_LOAD, data)
-        self._is_on = False
-        self.async_write_ha_state()
-
-    @property
-    def should_poll(self):
-        """Return the polling state."""
-        return False
-
-    @property
-    def icon(self):
-        """Return the icon to use in the frontend."""
-        return "mdi:electric-switch"
+async def async_update(self) -> None:
+        """Update the entity data."""
+        await self.coordinator.async_request_refresh()

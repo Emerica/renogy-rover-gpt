@@ -1,0 +1,4 @@
+homeassistant==2022.2.5
+pygatt==4.1.0
+renogy-bt1==0.0.3
+

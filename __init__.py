@@ -1,65 +1,32 @@
+"""The Renogy BT-1 integration."""
+
 import logging
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import (
-    CONF_HOST,
-    CONF_NAME,
-    CONF_PORT,
-)
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import ConfigEntryNotReady
-from homeassistant.helpers.typing import ConfigType
-
-from renogy_rover import BTOneApp
 from .const import DOMAIN
+from renogy_bt1.bt1 import BT1
 
 _LOGGER = logging.getLogger(__name__)
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Set up the Renogy Rover from a config entry."""
+PLATFORMS = ["sensor"]
+
+
+async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
+    """Set up Renogy BT-1 from a config entry."""
+    bt1 = BT1(config_entry.data["mac"])
+
     hass.data.setdefault(DOMAIN, {})
-    host = entry.data.get(CONF_HOST)
-    port = entry.data.get(CONF_PORT)
-    name = entry.data.get(CONF_NAME)
+    hass.data[DOMAIN][config_entry.entry_id] = bt1
 
-    rover = RenogyRover(hass, host, port, name)
-    if not await rover.async_setup():
-        raise ConfigEntryNotReady
-
-    hass.data[DOMAIN][entry.entry_id] = rover
-    entry.async_on_unload(rover.async_unload)
+    hass.config_entries.async_setup_platforms(config_entry, PLATFORMS)
 
     return True
 
 
-class RenogyRover:
-    def __init__(self, hass: HomeAssistant, host: str, port: int, name: str):
-        self.hass = hass
-        self.host = host
-        self.port = port
-        self.name = name
-        self.bt_app = None
-
-    async def async_setup(self) -> bool:
-        """Set up the Renogy Rover integration."""
-        self.bt_app = BTOneApp(self.host, self.port, self.name)
-        if not await self.hass.async_add_executor_job(self.bt_app.connect):
-            _LOGGER.error("Unable to connect to Renogy Rover at %s:%s", self.host, self.port)
-            return False
-
-        return True
-
-    async def async_unload(self) -> None:
-        """Unload the Renogy Rover integration."""
-        if self.bt_app is not None:
-            self.bt_app.disconnect()
-
-        self.hass.data[DOMAIN].pop(self.entry_id)
-
-    def get_sensors(self):
-        """Get the sensor data from the Renogy Rover."""
-        return self.bt_app.get_sensor_data()
-
-    def set_load(self, load: bool):
-        """Set the load status of the Renogy Rover."""
-        self.bt_app.set_load(load)
+async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
+    """Unload a config entry."""
+    unload_ok = await hass.config_entries.async_unload_platforms(config_entry, PLATFORMS)
+    if unload_ok:
+        del hass.data[DOMAIN][config_entry.entry_id]
+    return unload_ok

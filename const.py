@@ -1,24 +1,43 @@
-DOMAIN = "renogy_rover"
-DEFAULT_NAME = "Renogy Rover"
-DEFAULT_SCAN_INTERVAL = timedelta(minutes=5)
+DOMAIN = 'renogy_bt1'
+
+CONF_DEVICE_ID = 'device_id'
+CONF_DEVICE_NAME = 'device_name'
+CONF_SCAN_TIMEOUT = 'scan_timeout'
+
+DEFAULT_SCAN_TIMEOUT = 10
+
+CONFIG_FILE = 'renogy_bt1_config.yaml'
+
+DATA_CLIENT = 'client'
+
+MANUFACTURER = 'Renogy'
 
 SENSOR_TYPES = {
-    "battery_voltage": ["Battery Voltage", "V", "mdi:flash-triangle", "voltage"],
-    "load_voltage": ["Load Voltage", "V", "mdi:flash-triangle", "voltage"],
-    "pv_voltage": ["PV Voltage", "V", "mdi:flash-triangle", "voltage"],
-    "controller_temperature": ["Controller Temperature", "°C", "mdi:thermometer", "temperature"],
-    "battery_temperature": ["Battery Temperature", "°C", "mdi:thermometer", "temperature"],
-    "load_status": ["Load Status", "", "mdi:electric-switch", "outlet"],
-    "load_power": ["Load Power", "W", "mdi:lightning-bolt-circle", "power"],
-    "pv_power": ["PV Power", "W", "mdi:lightning-bolt-circle", "power"],
-    "max_charging_power_today": ["Max Charging Power Today", "W", "mdi:lightning-bolt-circle", "power"],
-    "max_discharging_power_today": ["Max Discharging Power Today", "W", "mdi:lightning-bolt-circle", "power"],
-    "power_generation_today": ["Power Generation Today", "W", "mdi:lightning-bolt-circle", "power"],
-    "power_generation_total": ["Power Generation Total", "W", "mdi:lightning-bolt-circle", "power"],
-    "load_current": ["Load Current", "A", "mdi:lightning-bolt-circle", "current"],
-    "pv_current": ["PV Current", "A", "mdi:lightning-bolt-circle", "current"],
-    "charging_amp_hours_today": ["Charging Amp Hours Today", "Ah", "mdi:lightning-bolt-circle", "current"],
-    "discharging_amp_hours_today": ["Discharging Amp Hours Today", "Ah", "mdi:lightning-bolt-circle", "current"],
-    "charging_status": ["Charging Status", "", "mdi:electric-switch", ""],
-    "battery_percentage": ["Battery Percentage", "%", "mdi:battery", "battery"],
+    'battery_voltage': ['Battery Voltage', 'V', 'battery_volt', MANUFACTURER],
+    'battery_temperature': ['Battery Temperature', '°C', 'battery_temp', MANUFACTURER],
+    'pv_voltage': ['PV Voltage', 'V', 'pv_volt', MANUFACTURER],
+    'pv_current': ['PV Current', 'A', 'pv_current', MANUFACTURER],
+    'pv_watts': ['PV Power', 'W', 'pv_watts', MANUFACTURER],
+    'load_voltage': ['Load Voltage', 'V', 'load_volt', MANUFACTURER],
+    'load_current': ['Load Current', 'A', 'load_current', MANUFACTURER],
+    'load_watts': ['Load Power', 'W', 'load_watts', MANUFACTURER],
+    'charging_power': ['Charging Power', 'W', 'charging_power', MANUFACTURER],
+    'charging_current': ['Charging Current', 'A', 'charging_current', MANUFACTURER],
+    'charging_mode': ['Charging Mode', '', 'charging_mode', MANUFACTURER],
+    'battery_capacity': ['Battery Capacity', '%', 'battery_capacity', MANUFACTURER],
+    'charge_status': ['Charge Status', '', 'charge_status', MANUFACTURER],
+    'faults': ['Faults', '', 'faults', MANUFACTURER],
+    'errors': ['Errors', '', 'errors', MANUFACTURER],
+}
+
+DEVICE_TYPES = {
+    'rover': 'Rover',
+    'commander': 'Commander',
+    'wanderer': 'Wanderer',
+    'adventurer': 'Adventurer',
+    'tracer': 'Tracer',
+    'tracer_duo': 'Tracer Duo',
+    'tracer_bn': 'Tracer BN',
+    'mt50': 'MT50',
+    'rnd': 'RND'
 }
