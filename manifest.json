@@ -1,0 +1,14 @@
+{
+  "domain": "renogy_rover",
+  "name": "Renogy Rover",
+  "documentation": "https://github.com/emerica/renogy-rover",
+  "dependencies": [],
+  "codeowners": [],
+  "requirements": ["renogy-bt1"],
+  "config_flow": true,
+  "zeroconf": ["_renogy-rover._tcp.local."],
+  "homeassistant": ">=2022.2.0",
+  "version": "0.1.0",
+  "issue_tracker": "https://github.com/emerica/renogy-rover/issues",
+  "frontend": true
+}
