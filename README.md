@@ -1,3 +1,6 @@
+# DONT USE THIS - IT'S JUST AN EXPERIMENT TO SEE IF GPT CAN BUILD INTEGRATIONS
+
+
 # Renogy Rover Solar Charge Controller Component for Home Assistant
 
 This is a custom component for [Home Assistant](https://www.home-assistant.io/) that integrates with the Renogy Rover solar charge controller using the Renogy Bluetooth Module BT-1.
